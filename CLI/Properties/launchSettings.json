@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "CLI Help Up": {
+      "commandName": "Project",
+      "commandLineArgs": "up --help"
+    },
+    "CLI Help": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    },
+    "CLI Up": {
+      "commandName": "Project",
+      "commandLineArgs": "up --app skygrate-test --base .\\test\\simple_create"
+    }
+  }
+}

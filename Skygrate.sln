@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33403.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skyward.Skygrate.Core", "Core\Skyward.Skygrate.Core.csproj", "{631670E0-B951-4FCE-BBC7-2E39E7D8A619}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skyward.Skygrate.CLI", "CLI\Skyward.Skygrate.CLI.csproj", "{BAC5894E-F421-4DEF-9BE0-69F4C3D41900}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skyward.Skygrate.DatabaseProvider.Postgresql", "DatabaseProvider\Postgresql\Skyward.Skygrate.DatabaseProvider.Postgresql.csproj", "{F996ED3A-6DB7-4D0A-A8DE-598111F63C36}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skyward.Skygrate.Abstractions", "Abstractions\Skyward.Skygrate.Abstractions.csproj", "{76FCD08F-1DDE-4A12-B0DA-95B459B7F74F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skyward.Skygrate.MigrationProvider.LocalFileSystem", "Skyward.Skygrate.MigrationProvider.LocalFileSystem\Skyward.Skygrate.MigrationProvider.LocalFileSystem.csproj", "{EAEDFAC5-238A-467F-A5D5-5D9FD4BA018D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_docs", "_docs", "{1FF20AD0-8DF5-4C89-BDCC-69D8ACCA666B}"
+	ProjectSection(SolutionItems) = preProject
+		Readme.md = Readme.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{849946CE-6DFA-4FE2-ACC2-6476DF4E4784}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{631670E0-B951-4FCE-BBC7-2E39E7D8A619}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{631670E0-B951-4FCE-BBC7-2E39E7D8A619}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{631670E0-B951-4FCE-BBC7-2E39E7D8A619}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{631670E0-B951-4FCE-BBC7-2E39E7D8A619}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAC5894E-F421-4DEF-9BE0-69F4C3D41900}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAC5894E-F421-4DEF-9BE0-69F4C3D41900}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAC5894E-F421-4DEF-9BE0-69F4C3D41900}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAC5894E-F421-4DEF-9BE0-69F4C3D41900}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F996ED3A-6DB7-4D0A-A8DE-598111F63C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F996ED3A-6DB7-4D0A-A8DE-598111F63C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F996ED3A-6DB7-4D0A-A8DE-598111F63C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F996ED3A-6DB7-4D0A-A8DE-598111F63C36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76FCD08F-1DDE-4A12-B0DA-95B459B7F74F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76FCD08F-1DDE-4A12-B0DA-95B459B7F74F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76FCD08F-1DDE-4A12-B0DA-95B459B7F74F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76FCD08F-1DDE-4A12-B0DA-95B459B7F74F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAEDFAC5-238A-467F-A5D5-5D9FD4BA018D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAEDFAC5-238A-467F-A5D5-5D9FD4BA018D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAEDFAC5-238A-467F-A5D5-5D9FD4BA018D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAEDFAC5-238A-467F-A5D5-5D9FD4BA018D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{849946CE-6DFA-4FE2-ACC2-6476DF4E4784}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{849946CE-6DFA-4FE2-ACC2-6476DF4E4784}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{849946CE-6DFA-4FE2-ACC2-6476DF4E4784}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{849946CE-6DFA-4FE2-ACC2-6476DF4E4784}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {291993AB-0639-4AD7-B096-0ABF2B338FD7}
+	EndGlobalSection
+EndGlobal
