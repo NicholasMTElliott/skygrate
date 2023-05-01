@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:Fifth ID:00000005 PRIOR:00000003 CHECKSUM:XX96D420741F2F0299E8F74BD722E2CE
+
+-- Add your SQL below here.
+CREATE TABLE Fifth (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);

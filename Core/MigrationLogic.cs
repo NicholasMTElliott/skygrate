@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Skyward.Skygrate.Abstractions;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Reflection;
@@ -408,6 +409,85 @@ namespace Skyward.Skygrate.Core
                 _logger.LogError(ex, "Exception thrown trying to initialize our docker container.");
                 _logger.LogError(ex.ToString());
             }
+        }
+
+        public async Task<List<MigrationReference>> ListValidMigrationsAsync()
+        {
+            var availableMigrations = await _migrationProvider.ListAvailableMigrationsAsync();
+            return availableMigrations.Where(m => m.Checksum != null).ToList();
+        }
+        public async Task<List<MigrationReference>> ListInvalidMigrationsAsync()
+        {
+            var availableMigrations = await _migrationProvider.ListAvailableMigrationsAsync();
+            return availableMigrations.Where(m => m.Checksum != null).ToList();
+        }
+
+
+        public async Task<List<MigrationReference>> ListPendingMigrationsAsync()
+        {
+            var availableMigrations = await _migrationProvider.ListAvailableMigrationsAsync();
+            return availableMigrations.Where(m => m.Checksum == null).ToList();
+        }
+
+
+        /// <summary>
+        /// This is a slow operation as it will perform checksum logic on all the migration files.
+        /// 
+        /// We need to know:
+        ///     Which migrations are in the valid chain
+        ///     Which migrations are invalid and within the chain
+        ///     Which migrations are invalid and after the chain
+        ///     Which migrations are pending
+        ///     Which migrations have changed contents. 
+        /// </summary>
+        public async Task<List<(MigrationStatus status, MigrationReference migration)>> ListMigrationsWithStatus()
+        {
+            var result = new List<(MigrationStatus status, MigrationReference migration)>();
+            var availableMigrations = await _migrationProvider.ListAvailableMigrationsAsync();
+            var lastId = (string?)null;
+            foreach (var migration in availableMigrations)
+            {
+                if (migration.Checksum == null)
+                {
+                    result.Add((MigrationStatus.Pending, migration));
+                }
+                else if (migration.Id != migration.InternalId)
+                {
+                    result.Add((MigrationStatus.Changed, migration));
+                }
+                else if (await _migrationProvider.GetChecksumForMigrationAsync(migration) != migration.Checksum)
+                {
+                    result.Add((MigrationStatus.Changed, migration));
+                }
+                else if (lastId == null || lastId == migration.PriorId)
+                {
+                    result.Add((MigrationStatus.ValidChain, migration));
+                    lastId = migration.Id;
+                }
+                else
+                {
+                    result.Add((MigrationStatus.InvalidWithin, migration));
+                }
+            }
+
+            // Iterate in reverse to update the invalid items that fall _after_ the chain
+            for(var i = result.Count - 1; i >= 0; i--)
+            {
+                var entry = result[i];
+                // Update if this is after the valid chain now
+                if (entry.status == MigrationStatus.InvalidWithin)
+                {
+                    result[i] = (MigrationStatus.InvalidAfter, entry.migration);
+                }
+
+                // End as soon as we find the tail of the valid chain
+                if (entry.status == MigrationStatus.ValidChain)
+                {
+                    break;
+                }
+            }
+
+            return result;
         }
     }
 }

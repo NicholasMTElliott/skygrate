@@ -35,5 +35,6 @@ namespace Skyward.Skygrate.Abstractions
         /// May be null for the first-ever migration
         /// </summary>
         public string PriorId { get; set; }
+        public string InternalId { get; set; }
     }
 }

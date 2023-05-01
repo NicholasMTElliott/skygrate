@@ -8,7 +8,7 @@ using Skyward.Skygrate.Abstractions;
 using Skyward.Skygrate.Core;
 using Skyward.Skygrate.MigrationProvider.LocalFileSystem;
 
-namespace Test
+namespace Test.TestAdd
 {
     /// <summary>
     /// add
@@ -21,7 +21,8 @@ namespace Test
     public class TestAdd
     {
         const string AppName = nameof(TestAdd);
-        readonly static LaunchOptions Options = new LaunchOptions {
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
             ApplicationName = AppName,
         };
 
@@ -52,7 +53,8 @@ namespace Test
             var logic = new MigrationLogic(
                 Options,
                 dbProviderMock.Object,
-                new LocalFileSystemMigrationProvider(loggerFactory.CreateLogger<LocalFileSystemMigrationProvider>(), new OptionsWrapper<Config>(new Config {
+                new LocalFileSystemMigrationProvider(loggerFactory.CreateLogger<LocalFileSystemMigrationProvider>(), new OptionsWrapper<Config>(new Config
+                {
                     BasePath = root
                 })),
                 loggerFactory.CreateLogger<MigrationLogic>()

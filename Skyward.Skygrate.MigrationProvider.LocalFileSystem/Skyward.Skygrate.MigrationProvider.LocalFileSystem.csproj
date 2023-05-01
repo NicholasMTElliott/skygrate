@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Skyward.Skygrate.Abstractions.csproj" />
+    <ProjectReference Include="..\Core\Skyward.Skygrate.Core.csproj" />
   </ItemGroup>
 
 </Project>

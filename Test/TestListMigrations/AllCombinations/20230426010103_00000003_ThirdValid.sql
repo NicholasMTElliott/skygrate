@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:Third ID:00000003 PRIOR:00000002 CHECKSUM:8A4BF7CC256FE7285C9021A6AB7A82B8
+
+-- Add your SQL below here.
+CREATE TABLE Third (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);

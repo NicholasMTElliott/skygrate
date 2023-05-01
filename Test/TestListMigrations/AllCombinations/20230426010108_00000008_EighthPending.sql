@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:Eigth ID:00000008 PRIOR:00000000 CHECKSUM:00000000000000000000000000000000
+
+-- Add your SQL below here.
+CREATE TABLE Eigth (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);

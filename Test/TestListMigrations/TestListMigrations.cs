@@ -10,20 +10,21 @@ using Skyward.Skygrate.MigrationProvider.LocalFileSystem;
 namespace Test
 {
     /// <summary>
-    /// commit
-    ///     no pending migrations
-    ///     one pending migration
-    ///     many pending migrations
-    ///     invalid chain
+    /// list-migrations
+    ///     list
+    ///     list invalid chain
+    ///     list not applied
+    ///     no migrations
     /// </summary>
     [TestClass]
-    public class TestCommit
+    public class TestListMigrations
     {
-        const string AppName = nameof(TestCommit);
+        const string AppName = nameof(TestListMigrations);
         readonly static LaunchOptions Options = new LaunchOptions
         {
             ApplicationName = AppName,
         };
+
 
         [TestInitialize]
         public async Task TestInitialize()
@@ -37,19 +38,14 @@ namespace Test
             await TestUtil.Terminate(Options);
         }
 
-        [TestMethod]
-        public void NoPendingMigrations()
-        {
-            throw new NotImplementedException();
-        }
-
         [TestMethod, TestCategory("Gold Path")]
-        public async Task OnePendingMigration()
+        public async Task AllCombinations()
         {
-            var dest = $"{nameof(TestCommit)}\\{nameof(OnePendingMigration)}";
+            var dest = $"{nameof(TestListMigrations)}\\{nameof(AllCombinations)}";
             var source = $".\\{dest}";
             var root = TestUtil.CloneTestData(source, dest);
             Directory.Exists(root).ShouldBeTrue();
+
             var dbProviderMock = new Mock<IDatabaseProvider>(MockBehavior.Strict);
             var loggerFactory = new NullLoggerFactory();
             var logic = new MigrationLogic(
@@ -62,23 +58,35 @@ namespace Test
                 loggerFactory.CreateLogger<MigrationLogic>()
                 );
 
-
-            var continuation = await logic.AddNewMigrationAsync(nameof(OnePendingMigration));
-            continuation.Resolved.ShouldBeTrue();
-            MigrationReference newMigration = continuation.Value!.Value;
-
-
-            await logic.CommitMigrationsAsync();
-        }
-
-        [TestMethod, TestCategory("Gold Path")]
-        public void ManyPendingMigrations()
-        {
-            throw new NotImplementedException();
+            var allMigrationsWithStatuses = await logic.ListMigrationsWithStatus();
+            allMigrationsWithStatuses[0].status.ShouldBe(MigrationStatus.Changed);
+            allMigrationsWithStatuses[1].status.ShouldBe(MigrationStatus.ValidChain);
+            allMigrationsWithStatuses[2].status.ShouldBe(MigrationStatus.ValidChain);
+            allMigrationsWithStatuses[3].status.ShouldBe(MigrationStatus.InvalidWithin);
+            allMigrationsWithStatuses[4].status.ShouldBe(MigrationStatus.Changed);
+            allMigrationsWithStatuses[5].status.ShouldBe(MigrationStatus.ValidChain);
+            allMigrationsWithStatuses[6].status.ShouldBe(MigrationStatus.InvalidAfter);
+            allMigrationsWithStatuses[7].status.ShouldBe(MigrationStatus.Pending);
+            allMigrationsWithStatuses[8].status.ShouldBe(MigrationStatus.Changed);
         }
 
         [TestMethod]
+        public void NoMigrations()
+        {
+            throw new NotImplementedException();
+        }
+        [TestMethod]
+        public void SomeMigrationsApplied()
+        {
+            throw new NotImplementedException();
+        }
+        [TestMethod]
         public void InvalidChain()
+        {
+            throw new NotImplementedException();
+        }
+        [TestMethod]
+        public void AllMigrationsApplied()
         {
             throw new NotImplementedException();
         }

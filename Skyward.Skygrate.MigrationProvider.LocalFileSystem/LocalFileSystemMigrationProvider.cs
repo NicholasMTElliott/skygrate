@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Skyward.Skygrate.Abstractions;
 using System.Text.RegularExpressions;
 using System.Text;
+using Skyward.Skygrate.Core;
 
 namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
 {
@@ -33,18 +34,6 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
             {
                 throw new ArgumentException($"Base folder {_config.BasePath} does not appear to exist");
             }
-        }
-
-        public async Task<string> GetContentForMigrationAsync(MigrationReference migration)
-        {
-            var parsed = await EnumerateMigrationsAsync();
-            var match = parsed.Single(p => p.migration.Id == migration.Id 
-                && p.migration.Timestamp == migration.Timestamp 
-                && p.migration.Checksum == migration.Checksum);
-
-            // Strip the first line
-            var content = await File.ReadAllLinesAsync(match.path);
-            return String.Join("\n", content.Skip(1));
         }
 
 
@@ -87,17 +76,14 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
                 var line = streamReader.ReadLine();
                 if (line == null)
                 {
-                    throw new ArgumentOutOfRangeException($"Empty read from migration file {filename}");
+                    //throw new ArgumentOutOfRangeException($"Empty read from migration file {filename}");
+                    return null;
                 }
                 var commentMatch = commentRefex.Match(line);
                 if (!commentMatch.Success)
                 {
-                    throw new ArgumentOutOfRangeException($"Invalid format from migration file {filename} in first line.  You may need to rebuild the migration: {line}");
-                }
-
-                if (commentMatch.Groups[1].Value != match.Groups[2].Value)
-                {
-                    throw new ArgumentOutOfRangeException($"Internal ID {commentMatch.Groups[1].Value} does not match the external ID {match.Groups[2].Value}.  You may need to rebuild the migration: {line}");
+                    //throw new ArgumentOutOfRangeException($"Invalid format from migration file {filename} in first line.  You may need to rebuild the migration: {line}");
+                    return null;
                 }
 
                 return new MigrationReference
@@ -105,8 +91,9 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
                     Timestamp = match.Groups[1].Value,
                     Id = match.Groups[2].Value,
                     Name = match.Groups[3].Value,
-                    Checksum = commentMatch.Groups[2].Value == SentinelChecksum ? null : commentMatch.Groups[2].Value,
-                    PriorId = commentMatch.Groups[3].Value == SentinelId ? null : commentMatch.Groups[3].Value,
+                    InternalId = commentMatch.Groups[1].Value,
+                    Checksum = commentMatch.Groups[3].Value == SentinelChecksum ? null : commentMatch.Groups[3].Value,
+                    PriorId = commentMatch.Groups[2].Value == SentinelId ? null : commentMatch.Groups[2].Value,
                 };
             }
         }
@@ -137,9 +124,47 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
 
             // Strip the first line
             var content = await File.ReadAllLinesAsync(match.path);
-            var Checksum = MD5.ComputeHash(content.Skip(1));
+            var allButHeader = content.Skip(1);
+            var checksum = MD5.CreateMD5(allButHeader, nameof(LocalFileSystemMigrationProvider));
+            var committedPrefixLine = $"-- {nameof(LocalFileSystemMigrationProvider)}:{migration.Name} ID:{migration.Id} PRIOR:{migration.PriorId ?? SentinelId} CHECKSUM:{checksum}";
+            var newlines = new List<string> { committedPrefixLine }.Union(allButHeader);
+            await File.WriteAllLinesAsync(match.path, newlines, Encoding.UTF8 );
+            return new MigrationReference {
+                Id = migration.Id,
+                Checksum = checksum,
+                Name= migration.Name,
+                PriorId= migration.PriorId,
+                Timestamp = migration.Timestamp
+            };
 
-            var committedPrefixLine = $"-- {nameof(LocalFileSystemMigrationProvider)}:{migration.Name} ID:{migration.Id} PRIOR:{migration.PriorId ?? SentinelId} CHECKSUM:{Checksum}\n\n-- Do not edit the lines above. Add your SQL below here.", 
+        }
+
+
+        public async Task<string> GetContentForMigrationAsync(MigrationReference migration)
+        {
+            var parsed = await EnumerateMigrationsAsync();
+            var match = parsed.Single(p => p.migration.Id == migration.Id
+                && p.migration.Timestamp == migration.Timestamp
+                && p.migration.Checksum == migration.Checksum);
+
+            // Strip the first line
+            var content = await File.ReadAllLinesAsync(match.path);
+            return String.Join("\n", content.Skip(1));
+        }
+
+        public async Task<string> GetChecksumForMigrationAsync(MigrationReference migration)
+        {
+            // Find the matching migration
+            var parsed = await EnumerateMigrationsAsync();
+            var match = parsed.Single(p => p.migration.Id == migration.Id
+                && p.migration.Timestamp == migration.Timestamp
+                && p.migration.Checksum == migration.Checksum);
+
+            // Strip the first line
+            var content = await File.ReadAllLinesAsync(match.path);
+            var allButHeader = content.Skip(1);
+            var checksum = MD5.CreateMD5(allButHeader, nameof(LocalFileSystemMigrationProvider));
+            return checksum;
         }
     }
 }

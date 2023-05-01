@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:First ID:12345678 PRIOR:00000000 CHECKSUM:420B8E2C770D25AB5DA8F71FFA1CB2E5
+
+-- Add your SQL below here.
+CREATE TABLE First (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);

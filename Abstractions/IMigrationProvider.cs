@@ -12,5 +12,6 @@ namespace Skyward.Skygrate.Abstractions
         Task<string> GetContentForMigrationAsync(MigrationReference migration);
         Task<MigrationReference> AddNewMigrationAsync(string name);
         Task<MigrationReference> CommitMigrationAsync(MigrationReference m);
+        Task<string> GetChecksumForMigrationAsync(MigrationReference migration);
     }
 }

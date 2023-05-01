@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:Ninth ID:00000007 PRIOR:00000006 CHECKSUM:420B8E2C770D25AB5DA8F71FFA1CB2E5
+
+-- Add your SQL below here.
+CREATE TABLE Ninth (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);

@@ -1,0 +1,6 @@
+﻿-- LocalFileSystemMigrationProvider:Sixth ID:00000006 PRIOR:00000003 CHECKSUM:522B5A6129435C3509E09EA9C12BCF59
+
+-- Add your SQL below here.
+CREATE TABLE Sixth (
+   Id varchar(255) NOT NULL PRIMARY KEY
+);
