@@ -24,24 +24,34 @@ namespace Skygrate.DatabaseProvider.Postgresql
 
         public async Task ApplyMigrationAsync(MigrationReference migration, string content)
         {
-            using (var transactionScope = await _connection.BeginTransactionAsync())
+            _logger.LogInformation($"Applying migration ({migration.Id}) {migration.Name}...");
+            try
             {
-                var cmd = _connection.CreateCommand();
-                cmd.Transaction = transactionScope;
-                cmd.CommandText = content;
-                await cmd.ExecuteNonQueryAsync();
+                using (var transactionScope = await _connection.BeginTransactionAsync())
+                {
+                    var cmd = _connection.CreateCommand();
+                    cmd.Transaction = transactionScope;
+                    cmd.CommandText = content;
+                    await cmd.ExecuteNonQueryAsync();
 
-                // Insert into the database!
-                var sql = $"INSERT INTO {InternalTableName}" +
-                    $" (Id, Timestamp, Name, Checksum, PreviousMigrationId, RollingChecksum)" +
-                    $" VALUES (@{nameof(MigrationReference.Id)}, @{nameof(MigrationReference.Timestamp)}, @{nameof(MigrationReference.Name)}, @{nameof(MigrationReference.Checksum)}," +
-                    $" @{nameof(MigrationReference.Id)}, @{nameof(MigrationReference.Checksum)})";
-                await _connection.ExecuteAsync(sql, migration);
-                transactionScope.Commit();
+                    // Insert into the database!
+                    var sql = $"INSERT INTO {InternalTableName}" +
+                        $" (Id, Timestamp, Name, Checksum, PreviousMigrationId, RollingChecksum)" +
+                        $" VALUES (@{nameof(MigrationReference.Id)}, @{nameof(MigrationReference.Timestamp)}, @{nameof(MigrationReference.Name)}, @{nameof(MigrationReference.Checksum)}," +
+                        $" @{nameof(MigrationReference.Id)}, @{nameof(MigrationReference.Checksum)})";
+                    await _connection.ExecuteAsync(sql, migration);
+                    transactionScope.Commit();
+                    _logger.LogInformation($"Successful.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An exception was thrown trying to apply the migration ({migration.Id}) {migration.Name}. The transaction has been aborted.");
+                throw;
             }
         }
 
-        public async Task<DbConnection> ConnectToDatabaseAsync(string dbUsername, string dbPassword, int publicPort, string dbName)
+        public async Task<bool> ConnectToDatabaseAsync(string dbUsername, string dbPassword, int publicPort, string dbName)
         {
             string connectionString = $"User ID={dbUsername};Password={dbPassword};Host=localhost;Port={publicPort};Database={dbName};";
             _connection = new Npgsql.NpgsqlConnection(connectionString);
@@ -72,7 +82,7 @@ namespace Skygrate.DatabaseProvider.Postgresql
                 throw storedEx;
             }
 
-            return _connection;
+            return true;
         }
 
         public async Task<IList<AppliedMigration>> ListAppliedMigrationsAsync()

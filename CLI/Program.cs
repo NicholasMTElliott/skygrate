@@ -18,72 +18,103 @@ Log.Logger = new LoggerConfiguration()
             .CreateLogger();
 
 
-Commands command = Commands.Up;
-
-var parserResult = Parser.Default.ParseArguments<InitOptions, UpOptions>(args);
-var options = parserResult
-    .MapResult<InitOptions, UpOptions, Options?>(
-        (initOptions) => { command = Commands.Init; return initOptions; },
-        (upOptions) => { command = Commands.Up; return upOptions; },
-        errs => null
-); 
-
-
-if (options == null)
-{
-    return -1;
-}
-
-using var host = Host.CreateDefaultBuilder(args)
-            .UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration))
-            .ConfigureServices((hostContext, services) =>
+var parserResult = Parser.Default.ParseArguments<InitOptions, UpOptions, PruneOptions, TerminateOptions>(args);
+var actionResult = parserResult
+    .MapResult<InitOptions, UpOptions, PruneOptions, TerminateOptions, Task<int>>(
+        async (initOptions) => {
+            IHost host = BuildHost(args, initOptions);
+            var logic = host.Services.GetRequiredService<MigrationLogic>();
+            var continuation = await logic.InitializeAsync();
+            var result = await ResolveContinuations(continuation);
+            if (!result)
             {
-                services.AddSingleton(new LaunchOptions
-                {
-                    ApplicationName = options.ApplicationName,
-                    InstanceName = options.InstanceName ?? $"{options.ApplicationName}-db",
-                    PublicPort = options.PublicPort,
-                    BaseDatabaseImage = options.BaseDatabaseImage,
-                    DbPassword = options.DbPassword,
-                    DbName = options.DbName,
-                    DbUsername = options.DbUsername
-                });
+                return -1;
+            }
+            return 0;
+        },
+        async (upOptions) => {
+            IHost host = BuildHost(args, upOptions);
+            var logic = host.Services.GetRequiredService<MigrationLogic>();
+            var continuation = await logic.UpAsync();
+            var result = await ResolveContinuations(continuation);
+            if (!result)
+            {
+                return -1;
+            }
+            return 0;
+        },
+        async (pruneOptions) => {
+            IHost host = BuildHost(args, pruneOptions);
+            var logic = host.Services.GetRequiredService<MigrationLogic>();
+            await logic.PruneAsync(pruneOptions.All, pruneOptions.Named);
+            return 0;
+        },
+        async (terminateOptions) =>
+        {
+            IHost host = BuildHost(args, terminateOptions);
+            var logic = host.Services.GetRequiredService<MigrationLogic>();
+            await logic.TerminateAsync();
+            if (terminateOptions.Prune)
+            {
+                await logic.PruneAsync(true, true);
+            }
+            return 0;
+        },
+        errs => null
+);
+return await actionResult;
 
-                services.AddScoped<DockerCommands>();
-                services.AddScoped<MigrationLogic>();
-                services.AddScoped<IDatabaseProvider, PostgresDatabaseProvider>();
 
-                services.Configure<Config>(c => c.BasePath = (options as UpOptions)?.BasePath);
-                services.AddScoped<IMigrationProvider, LocalFileSystemMigrationProvider>();
-            })
-            .Build();
-
-var config = host.Services.GetRequiredService<IConfiguration>();
-
-
-var logic = host.Services.GetRequiredService<MigrationLogic>();
-switch(command)
+static IHost BuildHost(string[] args, Options? options)
 {
-    case Commands.Init:
-        if (!await logic.InitializeAsync())
-        {
-            return -1;
-        }
-        break;
-    case Commands.Up:
-        if (!await logic.UpAsync())
-        {
-            return -1;
-        }
-        break;
+    return Host.CreateDefaultBuilder(args)
+                .UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration))
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddSingleton(new LaunchOptions
+                    {
+                        ApplicationName = options.ApplicationName,
+                        InstanceName = options.InstanceName ?? $"{options.ApplicationName}-db",
+                        PublicPort = options.PublicPort,
+                        BaseDatabaseImage = options.BaseDatabaseImage,
+                        DbPassword = options.DbPassword,
+                        DbName = options.DbName,
+                        DbUsername = options.DbUsername
+                    });
+
+                    services.AddScoped<DockerCommands>();
+                    services.AddScoped<MigrationLogic>();
+                    services.AddScoped<IDatabaseProvider, PostgresDatabaseProvider>();
+
+                    services.Configure<Config>(c => c.BasePath = (options as UpOptions)?.BasePath ?? ".");
+                    services.AddScoped<IMigrationProvider, LocalFileSystemMigrationProvider>();
+                })
+                .Build();
 }
 
-return 0;
-
-
-enum Commands
+static async Task<T> ResolveContinuations<T>(Continuation<T> continuation)
 {
-    Up = 0,
-    Init = 1
-};
+    while (!continuation.Resolved)
+    {
+        Console.WriteLine(continuation.Description);
+        for (var i = 0; i < continuation.Options.Count; ++i)
+        {
+            Console.WriteLine($"  {i + 1}: {continuation.Options[i].Description}");
+        }
+        Console.WriteLine($" {continuation.Options.Count + 1}: Abort");
+        Console.Write("> ");
+        var choice = Console.ReadLine();
+        int chosen;
+        if (int.TryParse(choice, out chosen) && chosen > 0 && chosen < continuation.Options.Count + 1)
+        {
+            continuation = await continuation.Options[chosen - 1].Resolver();
+        }
+        else
+        {
+            return default(T);
+        }
+    }
+
+    return continuation.Value;
+}
 

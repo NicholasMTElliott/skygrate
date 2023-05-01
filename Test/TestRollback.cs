@@ -1,4 +1,6 @@
-﻿namespace Test
+﻿using Skyward.Skygrate.Core;
+
+namespace Test
 {
     /// <summary>
     /// rollback
@@ -11,6 +13,25 @@
     [TestClass]
     public class TestRollback
     {
+        const string AppName = nameof(TestRollback);
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
+            ApplicationName = AppName,
+        };
+
+
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
         [TestMethod, TestCategory("Gold Path")]
         public void NoMigrations()
         {

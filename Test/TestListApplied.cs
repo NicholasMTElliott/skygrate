@@ -1,4 +1,6 @@
-﻿namespace Test
+﻿using Skyward.Skygrate.Core;
+
+namespace Test
 {
     /// <summary>
     /// list-applied
@@ -10,6 +12,24 @@
     [TestClass]
     public class TestListApplied
     {
+        const string AppName = nameof(TestListApplied);
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
+            ApplicationName = AppName,
+        };
+
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
         [TestMethod]
         public void NoMigrationsAtAll()
         {

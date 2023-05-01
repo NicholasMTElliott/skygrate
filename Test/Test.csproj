@@ -31,6 +31,9 @@
     <None Update="TestAdd\NoPriorMigrations\_sentinel.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestAdd\SomePriorMigrations\20230428010101_12345679_Second.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestAdd\SomePriorMigrations\20230426010101_12345678_First.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -30,7 +30,7 @@ namespace Skyward.Skygrate.Core
             });
 
             var snapshotImages = images
-                .Where(image => image.Labels.ContainsKey("_proc") && image.Labels["_proc"] == InternalSystemName)
+                .Where(image => image.Labels != null && image.Labels.ContainsKey("_proc") && image.Labels["_proc"] == InternalSystemName)
                 .Select(image => new ImageReference(
                     image,
                     image.Labels["_proc"],
@@ -38,9 +38,16 @@ namespace Skyward.Skygrate.Core
                     image.Labels["application"],
                     image.Labels["rolling_checksum"],
                     image.Labels["prior_checksum"],
-                    image.Labels["migration_id"]
+                    image.Labels["migration_id"],
+                    image.Labels["named"]
                 )).ToList();
             return snapshotImages;
+        }
+
+        public async Task RemoveSnapshotAsync(string iD)
+        {
+            await client.Images.DeleteImageAsync(iD, new ImageDeleteParameters {
+            });
         }
 
         public async Task<IEnumerable<ContainerReference>> QueryContainers()
@@ -97,15 +104,18 @@ namespace Skyward.Skygrate.Core
                     {
                         ["5432"] = new List<PortBinding> { 
                             new PortBinding { 
-                                HostPort = _options.PublicPort.ToString()
+                                HostPort = "5455",//_options.PublicPort.ToString()
+                                HostIP = "0.0.0.0",
                             }
                         }
                     }
+                    
                 },
-                ExposedPorts = new Dictionary<string, EmptyStruct> { 
-                    [_options.PublicPort.ToString()] = new EmptyStruct() {  }
+                ExposedPorts = new Dictionary<string, EmptyStruct> 
+                {
+                    ["5432"] = new EmptyStruct() {  }
                 }
-            });;
+            });
 
             var startResponse = await client.Containers.StartContainerAsync(createResponse.ID, new ContainerStartParameters {
             });
@@ -124,7 +134,7 @@ namespace Skyward.Skygrate.Core
             });
         }
 
-        public async Task SnapshotContainerAsync(string containerID, AppliedMigration? priorMigration, AppliedMigration appliedMigration, string runningChecksum)
+        public async Task SnapshotContainerAsync(string containerID, AppliedMigration? priorMigration, AppliedMigration appliedMigration, string runningChecksum, string? named = null)
         {
             await client.Containers.StopContainerAsync(containerID, new ContainerStopParameters
             {
@@ -135,7 +145,7 @@ namespace Skyward.Skygrate.Core
             {
                 ContainerID = containerID,
                 RepositoryName = _options.ApplicationName,
-                Tag = $"{appliedMigration.Id}-{runningChecksum}",
+                Tag = named ?? $"{appliedMigration.Id}-{runningChecksum}",
                 Config = new Config
                 {
                     Labels = new Dictionary<string, string>
@@ -146,10 +156,17 @@ namespace Skyward.Skygrate.Core
                         ["rolling_checksum"] = runningChecksum,
                         ["prior_checksum"] = priorMigration.HasValue ? priorMigration.Value.Checksum : "<INITIAL>",
                         ["migration_id"] = appliedMigration.Id,
+                        ["named"] = named ?? "" // Blank = automatic snapshot
                     },
                 }
             });;
             var snapshotId = commitResponse.ID;
+
+            await client.Images.TagImageAsync(snapshotId, new ImageTagParameters { 
+                Tag = named ?? $"{appliedMigration.Id}-{runningChecksum}",
+                Force = true,
+                RepositoryName = _options.ApplicationName
+            });
 
             await client.Containers.StartContainerAsync(containerID, new ContainerStartParameters
             {
@@ -157,6 +174,15 @@ namespace Skyward.Skygrate.Core
         }
     }
 
-    public record ImageReference(ImagesListResponse Image, string System, string ParamCheck, string Application, string RollingChecksum, string PriorChecksum, string MigrationId);
+    public static class CollectionExtensions
+    {
+        public static TV GetValue<TK, TV>(this IDictionary<TK, TV> dict, TK key, TV defaultValue = default(TV))
+        {
+            TV value;
+            return dict.TryGetValue(key, out value) ? value : defaultValue;
+        }
+    }
+
+    public record ImageReference(ImagesListResponse Image, string System, string ParamCheck, string Application, string RollingChecksum, string PriorChecksum, string MigrationId, string Named);
     public record ContainerReference(ContainerListResponse Container, string System, string ParamCheck, string Application, string RollingChecksum, string PriorChecksum, string MigrationId);
 }

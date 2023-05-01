@@ -1,1 +1,0 @@
-﻿ALTER TABLE InitialTable ADD COLUMN Second varchar(2); 

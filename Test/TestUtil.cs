@@ -1,4 +1,11 @@
-﻿namespace Test
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using Skyward.Skygrate.Abstractions;
+using Skyward.Skygrate.Core;
+using Skyward.Skygrate.MigrationProvider.LocalFileSystem;
+
+namespace Test
 {
     public static class TestUtil
     {
@@ -29,6 +36,18 @@
             }
 
             return destination;
+        }
+
+        public static async Task Terminate(LaunchOptions options)
+        {
+            var logic = new MigrationLogic(
+                options,
+                new Mock<IDatabaseProvider>().Object,
+                new Mock<IMigrationProvider>().Object,
+                new Mock<ILogger<MigrationLogic>>().Object
+                );
+            await logic.TerminateAsync();
+            await logic.PruneAsync(true, true);
         }
     }
 }

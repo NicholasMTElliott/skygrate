@@ -32,6 +32,12 @@ public class InitOptions : Options
 {
 }
 
+[Verb("terminate", HelpText = "Hard stop an application.")]
+public class TerminateOptions : Options
+{
+    [Option("prune", Required = false, HelpText = "Prune *all* application snapshots as well.")]
+    public bool Prune { get; set; }
+}
 
 [Verb("up", HelpText = "Initialize a container if needed and run all missing migrations.")]
 public class UpOptions : Options
@@ -39,4 +45,14 @@ public class UpOptions : Options
 
     [Option('b', "base", Required = true, HelpText = "The folder to scan for migration files.")]
     public string BasePath { get; set; }
+}
+
+[Verb("prune")]
+public class PruneOptions : Options
+{
+    [Option("all", Required = false, HelpText = "Prune the current valid snapshots as well.")]
+    public bool All { get; set; }
+
+    [Option("named", Required = false, HelpText = "Prune named snapshots as well.")]
+    public bool Named { get;set; }
 }

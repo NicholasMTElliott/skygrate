@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Abstractions\Skyward.Skygrate.Abstractions.csproj" />
   </ItemGroup>
 

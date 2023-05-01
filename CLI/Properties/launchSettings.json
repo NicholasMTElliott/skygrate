@@ -14,7 +14,19 @@
     },
     "CLI Up": {
       "commandName": "Project",
-      "commandLineArgs": "up --app skygrate-test --base .\\test\\simple_create"
+      "commandLineArgs": "up --app skygrate-test --base .\\test\\simple_create --port 5455"
+    },
+    "CLI Init": {
+      "commandName": "Project",
+      "commandLineArgs": "init --app skygrate-test"
+    },
+    "CLI Prune ALL": {
+      "commandName": "Project",
+      "commandLineArgs": "prune --app skygrate-test --all --named"
+    },
+    "CLI Terminate": {
+      "commandName": "Project",
+      "commandLineArgs": "terminate --app skygrate-test --prune"
     }
   }
 }

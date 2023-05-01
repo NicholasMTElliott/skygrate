@@ -1,4 +1,6 @@
-﻿namespace Test
+﻿using Skyward.Skygrate.Core;
+
+namespace Test
 {
     /// <summary>
     /// rebase
@@ -9,6 +11,25 @@
     [TestClass]
     public class TestRebase
     {
+        const string AppName = nameof(TestRebase);
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
+            ApplicationName = AppName,
+        };
+
+
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
         [TestMethod, TestCategory("Gold Path")]
         public void AlreadyValid()
         {

@@ -41,7 +41,10 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
             var match = parsed.Single(p => p.migration.Id == migration.Id 
                 && p.migration.Timestamp == migration.Timestamp 
                 && p.migration.Checksum == migration.Checksum);
-            return await File.ReadAllTextAsync(match.path);
+
+            // Strip the first line
+            var content = await File.ReadAllLinesAsync(match.path);
+            return String.Join("\n", content.Skip(1));
         }
 
 
@@ -123,6 +126,20 @@ namespace Skyward.Skygrate.MigrationProvider.LocalFileSystem
                 $"-- {nameof(LocalFileSystemMigrationProvider)}:{newMigration.Name} ID:{newMigration.Id} PRIOR:{newMigration.PriorId ?? SentinelId} CHECKSUM:{SentinelChecksum}\n\n-- Do not edit the lines above. Add your SQL below here.\n\n", 
                 Encoding.UTF8);
             return newMigration;
+        }
+
+        public async Task<MigrationReference> CommitMigrationAsync(MigrationReference migration)
+        {
+            var parsed = await EnumerateMigrationsAsync();
+            var match = parsed.Single(p => p.migration.Id == migration.Id
+                && p.migration.Timestamp == migration.Timestamp
+                && p.migration.Checksum == migration.Checksum);
+
+            // Strip the first line
+            var content = await File.ReadAllLinesAsync(match.path);
+            var Checksum = MD5.ComputeHash(content.Skip(1));
+
+            var committedPrefixLine = $"-- {nameof(LocalFileSystemMigrationProvider)}:{migration.Name} ID:{migration.Id} PRIOR:{migration.PriorId ?? SentinelId} CHECKSUM:{Checksum}\n\n-- Do not edit the lines above. Add your SQL below here.", 
         }
     }
 }

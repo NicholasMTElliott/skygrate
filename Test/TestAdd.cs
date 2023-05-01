@@ -22,8 +22,24 @@ namespace Test
     {
         const string AppName = nameof(TestAdd);
         readonly static LaunchOptions Options = new LaunchOptions {
+            ApplicationName = AppName,
         };
 
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        /// <summary>
+        /// Scenario: No migrations exist yet, so this is a special-case for the first-ever migration.
+        /// </summary>
         [TestMethod, TestCategory("Gold Path")]
         public async Task NoPriorMigrations()
         {
@@ -43,7 +59,9 @@ namespace Test
                 );
 
 
-            MigrationReference migration = await logic.AddNewMigrationAsync(nameof(NoPriorMigrations));
+            var continuation = await logic.AddNewMigrationAsync(nameof(NoPriorMigrations));
+            continuation.Resolved.ShouldBeTrue();
+            MigrationReference migration = continuation.Value!.Value;
             migration.Id.ShouldNotBeNullOrWhiteSpace();
             migration.Id.Length.ShouldBe(8);
             migration.Timestamp.ShouldNotBeNullOrWhiteSpace();
@@ -55,6 +73,11 @@ namespace Test
             File.Exists($"{root}\\{migration.Timestamp}_{migration.Id}_{migration.Name}.sql").ShouldBeTrue();
         }
 
+        /// <summary>
+        /// Scenario: There is at least one prior migration, so this should correctly create a new migration
+        /// that is in the chain after the most recent existing one.
+        /// There are two migrations added here so we can verify it is correctly placed after the second one.
+        /// </summary>
         [TestMethod, TestCategory("Gold Path")]
         public async Task SomePriorMigrations()
         {
@@ -75,29 +98,35 @@ namespace Test
                 );
 
 
-            MigrationReference migration = await logic.AddNewMigrationAsync(nameof(NoPriorMigrations));
+            var continuation = await logic.AddNewMigrationAsync(nameof(SomePriorMigrations));
+            continuation.Resolved.ShouldBeTrue();
+            MigrationReference migration = continuation.Value!.Value;
             migration.Id.ShouldNotBeNullOrWhiteSpace();
             migration.Id.Length.ShouldBe(8);
             migration.Timestamp.ShouldNotBeNullOrWhiteSpace();
             migration.Timestamp.Length.ShouldBe(14);
             migration.Checksum.ShouldBeNull();
-            migration.Name.ShouldBe(nameof(NoPriorMigrations));
-            migration.PriorId.ShouldBe("12345678");
+            migration.Name.ShouldBe(nameof(SomePriorMigrations));
+            migration.PriorId.ShouldBe("12345679"); // 12345678 means it referenced the _first_ migration
 
             File.Exists($"{root}\\{migration.Timestamp}_{migration.Id}_{migration.Name}.sql").ShouldBeTrue();
         }
 
         [TestMethod]
-        public void DuplicateNameSpecified()
+        public async Task DuplicateNameSpecified()
         {
+            await TestUtil.Terminate(Options);
+
             var root = $".\\{nameof(TestAdd)}\\{nameof(DuplicateNameSpecified)}";
             Directory.Exists(root).ShouldBeTrue();
             throw new NotImplementedException();
         }
 
         [TestMethod]
-        public void InvalidCharacters()
+        public async Task InvalidCharacters()
         {
+            await TestUtil.Terminate(Options);
+
             var root = $".\\{nameof(TestAdd)}\\{nameof(InvalidCharacters)}";
             Directory.Exists(root).ShouldBeTrue();
 

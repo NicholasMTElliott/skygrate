@@ -40,13 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="test\incremental_apply\step1\20230101010101_12345678_InitialDatabaseEntry_12345678901234567890123456789012.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="test\incremental_apply\step2\20230101020101_12345678_UpdateInitial_12345678901234567890123456789012.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="test\simple_create\20230101010101_12345678_InitialDatabaseEntry_12345678901234567890123456789012.sql">
+    <None Update="test\simple_create\20230101010101_12345678_InitialDatabaseEntry.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

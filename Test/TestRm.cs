@@ -1,4 +1,6 @@
-﻿namespace Test
+﻿using Skyward.Skygrate.Core;
+
+namespace Test
 {
     /// <summary>
     /// rm
@@ -8,6 +10,25 @@
     [TestClass]
     public class TestRm
     {
+        const string AppName = nameof(TestRm);
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
+            ApplicationName = AppName,
+        };
+
+
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
         [TestMethod]
         public void Remove()
         {

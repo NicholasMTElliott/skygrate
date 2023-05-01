@@ -1,4 +1,6 @@
-﻿namespace Test
+﻿using Skyward.Skygrate.Core;
+
+namespace Test
 {
     /// <summary>
     /// up
@@ -15,6 +17,23 @@
     public class TestUp
     {
         const string AppName = nameof(TestUp);
+        readonly static LaunchOptions Options = new LaunchOptions
+        {
+            ApplicationName = AppName,
+        };
+
+        [TestInitialize]
+        public async Task TestInitialize()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
+        [TestCleanup()]
+        public async Task TestCleanup()
+        {
+            await TestUtil.Terminate(Options);
+        }
+
 
         [TestMethod, TestCategory("Gold Path")]
         public void FromScratch()

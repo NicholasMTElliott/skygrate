@@ -7,7 +7,7 @@ namespace Skyward.Skygrate.Abstractions
     public interface IDatabaseProvider
     {
         Task ApplyMigrationAsync(MigrationReference migration, string content);
-        Task<DbConnection> ConnectToDatabaseAsync(string dbUsername, string dbPassword, int publicPort, string dbName);
+        Task<bool> ConnectToDatabaseAsync(string dbUsername, string dbPassword, int publicPort, string dbName);
         Task<IList<AppliedMigration>> ListAppliedMigrationsAsync();
         Task<bool> ValidateInternalTablesAsync();
     }
